@@ -1,23 +1,24 @@
 import { startOfHour } from 'date-fns';
+import { getCustomRepository } from 'typeorm';
+
 import AppointmentModel from '../models/AppointmentModel';
 import AppointmentsRepository from '../repositories/AppointmentsReposiroty';
 
 interface IAppointmentType {
-  provider: string;
+  provider_id: string;
   date: Date;
 }
 
 class CreateAppointmentService {
-  private appointmentsRepository: AppointmentsRepository;
+  public async execute({
+    date,
+    provider_id,
+  }: IAppointmentType): Promise<AppointmentModel> {
+    const appointmentsRepository = getCustomRepository(AppointmentsRepository);
 
-  constructor(appointmentsRepository: AppointmentsRepository) {
-    this.appointmentsRepository = appointmentsRepository;
-  }
-
-  public execute({ date, provider }: IAppointmentType): AppointmentModel {
     const parsedDate = startOfHour(date);
 
-    const findAppointmentInSameDate = this.appointmentsRepository.verifyAppointmentsDate(
+    const findAppointmentInSameDate = await appointmentsRepository.verifyAppointmentsDate(
       parsedDate,
     );
 
@@ -25,10 +26,12 @@ class CreateAppointmentService {
       throw Error('Horário não disponível');
     }
 
-    const appointment = this.appointmentsRepository.createAppointment({
-      provider,
+    const appointment = appointmentsRepository.create({
+      provider_id,
       date: parsedDate,
     });
+
+    await appointmentsRepository.save(appointment);
 
     return appointment;
   }
