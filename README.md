@@ -17,6 +17,7 @@ now with the project cloned in you pc run these comands:
  after u have installed and conected you database, pls continue with the next passes:
 
  ✅️ yarn typeorm migration:run - this will execute all migrations that project use.
+ 
  ✅️ yarn dev - this command will run our project
 
  if your console logged "::This Application is Running on port :: 3001" project has run succesfully,
