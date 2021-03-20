@@ -4,32 +4,28 @@ import { getCustomRepository } from 'typeorm';
 
 import AppointmentsRepository from '../repositories/AppointmentsReposiroty';
 import CreateAppointmentService from '../service/AppointmentsService';
+import RequestAuth from '../middlewares/RequestAuth';
 
 const appointmentsRouter = Router();
 
-appointmentsRouter.get('/', async (_req, res) => {
+appointmentsRouter.get('/', RequestAuth, async (_req, res) => {
   const appointmentsRepository = getCustomRepository(AppointmentsRepository);
   const allAppointments = await appointmentsRepository.find();
   return res.json(allAppointments);
 });
 
-appointmentsRouter.post('/', async (req, res) => {
+appointmentsRouter.post('/', RequestAuth, async (req, res) => {
   const { provider_id, date } = req.body;
+  const formatedDate = parseISO(date);
 
-  try {
-    const formatedDate = parseISO(date);
+  const appointmentService = new CreateAppointmentService();
 
-    const appointmentService = new CreateAppointmentService();
+  const appointment = await appointmentService.execute({
+    date: formatedDate,
+    provider_id,
+  });
 
-    const appointment = await appointmentService.execute({
-      date: formatedDate,
-      provider_id,
-    });
-
-    return res.json(appointment);
-  } catch (err) {
-    return res.status(400).json(err.message);
-  }
+  return res.json(appointment);
 });
 
 export default appointmentsRouter;

@@ -4,6 +4,7 @@ import { compare } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
 
 import tokenDetails from '../config/auth';
+import AppError from '../errors/AppError';
 
 interface ISession {
   email: string;
@@ -22,13 +23,19 @@ class AuthSessionsService {
     const user = await userRepository.findOne({ email });
 
     if (!user) {
-      throw Error(`Combinacao incorreta entre Senha/Email, tente novamente!`);
+      throw new AppError(
+        `Combinacao incorreta entre Senha/Email, tente novamente!`,
+        401,
+      );
     }
 
     const passValidation = await compare(password, user.password);
 
     if (!passValidation) {
-      throw Error(`Combinacao incorreta entre Senha/Email, tente novamente!`);
+      throw new AppError(
+        `Combinacao incorreta entre Senha/Email, tente novamente!`,
+        401,
+      );
     }
 
     const token = sign(

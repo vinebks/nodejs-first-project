@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import { verify } from 'jsonwebtoken';
 import tokenDetails from '../config/auth';
 
+import AppError from '../errors/AppError';
+
 interface ITokenType {
   iat: number;
   expiresIn: string;
@@ -16,7 +18,7 @@ export default function requestAuth(
   const auth = req.headers.authorization;
 
   if (!auth) {
-    throw new Error(`JWT token nao esta sendo enviado`);
+    throw new AppError(`JWT token nao esta sendo enviado`, 401);
   }
 
   const [, token] = auth.split(' ');
@@ -32,6 +34,6 @@ export default function requestAuth(
 
     return next();
   } catch (err) {
-    throw new Error('token JWT invalido!');
+    throw new AppError('token JWT invalido!', err.statusCode);
   }
 }

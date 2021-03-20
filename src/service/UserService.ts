@@ -2,6 +2,7 @@ import { getRepository } from 'typeorm';
 import { hash } from 'bcryptjs';
 
 import UserModel from '../models/UserModel';
+import AppError from '../errors/AppError';
 
 interface IUserType {
   name: string;
@@ -22,7 +23,7 @@ class CreateUserService {
     });
 
     if (findUserWithSameEmail) {
-      throw Error('E-mail escolhido ja está sendo utilizado');
+      throw new AppError('E-mail escolhido ja está sendo utilizado');
     }
 
     const encryptPass = await hash(password, 8);

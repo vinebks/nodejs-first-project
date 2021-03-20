@@ -1,35 +1,49 @@
 import { Router } from 'express';
-import { getRepository } from 'typeorm';
+import multer from 'multer';
+import uploadConfig from '../config/upload';
 
-import UserModel from '../models/UserModel';
 import CreateUserService from '../service/UserService';
+import RequestAuth from '../middlewares/RequestAuth';
+import UpdateUserAvatarService from '../service/UpdateUserAvatar';
 
 const userRouter = Router();
-
-userRouter.get('/', async (_req, res) => {
-  const userRepository = getRepository(UserModel);
-  const allUsers = await userRepository.find();
-  return res.json(allUsers);
-});
+const upload = multer(uploadConfig);
 
 userRouter.post('/', async (req, res) => {
   const { name, email, password } = req.body;
 
-  try {
-    const userService = new CreateUserService();
+  const userService = new CreateUserService();
 
-    const user = await userService.execute({
-      name,
-      email,
-      password,
+  const user = await userService.execute({
+    name,
+    email,
+    password,
+  });
+
+  delete user.password;
+
+  return res.json(user);
+});
+
+userRouter.patch(
+  '/avatar',
+  RequestAuth,
+  upload.single('avatar'),
+  async (req, res) => {
+    const { id } = req.user;
+    const fileName = req.file.filename;
+
+    const updateUserAvatar = new UpdateUserAvatarService();
+
+    const response = await updateUserAvatar.execute({
+      user_id: id,
+      avatarFileName: fileName,
     });
 
-    delete user.password;
+    delete response.password;
 
-    return res.json(user);
-  } catch (err) {
-    return res.status(400).json(err.message);
-  }
-});
+    return res.json(response);
+  },
+);
 
 export default userRouter;
